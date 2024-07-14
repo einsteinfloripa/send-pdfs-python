@@ -9,9 +9,9 @@ from email import encoders
 # Função para enviar email com anexo
 def send_email(to_email, subject, body, attachment_path):
 
-    # Configurações do email
     # O email de onde o email será enviado
-    # senha do email de onde o email será enviado. Foi utilizado uma senha gerada para apps
+    # A senha utilizada deve ser criada na conta de email, na aba de "Senhas de App".
+    # Essas senhas são específicas para envio de e-mails a partir de programas externos como esse script.
     from_email = 'pedro.rocha@einsteinfloripa.com.br'
     from_password = 'fwdn wygt zefv lenz'
 
@@ -20,7 +20,7 @@ def send_email(to_email, subject, body, attachment_path):
     msg['To'] = to_email
     msg['Subject'] = subject
 
-    msg.attach(MIMEText(body, 'plain'))
+    msg.attach(MIMEText(body, 'html'))
 
     # Anexando o arquivo
     attachment = open(attachment_path, 'rb')
@@ -39,56 +39,60 @@ def send_email(to_email, subject, body, attachment_path):
     server.sendmail(from_email, to_email, text)
     server.quit()
 
-# Caminho para a planilha Excel e a pasta com os PDFs
-excel_path = 'alunos_infos_2024 - Respostas ao formulário 1.csv'
+# Caminho para a planilha CSV e a pasta com os PDFs
+csv_path = 'alunos_infos_2024 - Respostas ao formulário 1.csv'
 pdf_folder_path = 'pdfs'
 
 # Lendo a planilha
-df = pd.read_csv(excel_path)
-print(len(df))
+df = pd.read_csv(csv_path)
 df['CPF'] = df['CPF'].str.replace(r'[^\d]', '', regex=True)
-# Iterando pelas linhas da planilha
+
 alunos_nao_encontrados = 0
 alunos_encontrados = 0
 
+# Iterando pelas linhas da planilha
+for index, row in df.iterrows():
+    cpf = str(row['CPF']) 
+    email = row['E-mail']   
+ 
+    nome_completo = row['Nome Completo']
+    nome_dividido = nome_completo.split()
 
-# pdf_filename = f'01309638950.pdf'
-# pdf_path = os.path.join(pdf_folder_path, pdf_filename)
+    # Pegue a primeira palavra da lista
+    primeiro_nome = nome_dividido[0]
 
-# if os.path.exists(pdf_path):
-#     # Enviando o email
-    
-#     send_email(
-#         to_email='pedro.rocha2609@gmail.com',
-#         subject='Seu PDF',
-#         body='Por favor, encontre em anexo o seu PDF.',
-#         attachment_path=pdf_path
-#     )
+    # Encontrando o arquivo PDF correspondente ao CPF
+    pdf_filename = f'{cpf}.pdf'
+    pdf_path = os.path.join(pdf_folder_path, pdf_filename)
 
-
-# for index, row in df.iterrows():
-#     cpf = str(row['CPF'])  # Supondo que a coluna do CPF se chama 'CPF'
-#     email = row['E-mail']   # Supondo que a coluna do Email se chama 'Email'
-#     print(email)
-#     # Encontrando o arquivo PDF correspondente ao CPF
-#     pdf_filename = f'{cpf}.pdf'
-#     pdf_path = os.path.join(pdf_folder_path, pdf_filename)
-
-#     if os.path.exists(pdf_path):
-#         # Enviando o email
-
-#         send_email(
-#             to_email='pedro.rocha2609@gmail.com',
-#             subject='Seu PDF',
-#             body='Por favor, encontre em anexo o seu PDF.',
-#             attachment_path=pdf_path
-#         )
+    if os.path.exists(pdf_path):
         
-#         alunos_encontrados += 1
+        # Abaixo é necessário costumizar a mensagem que será enviada no corpo do E-mail.
+        # Subject é o Assunto do E-mail.
 
-#     else:
-#         alunos_nao_encontrados += 1
+        html_message = f"""
+                <html>
+                <body>
+                    <h2 style="font-size:16px; color: black;">Olá, <strong>{primeiro_nome}</strong>! Espero que esteja tudo bem por aí!</h2>
+                    <p style="color: black;">O seu relatório do Simulinho 2024 está pronto!</p>
+                    <p style="margin-bottom: 28px; color: black;">Qualquer problema encontrado, entrar em contato com o vale.</p>
+                    <p style="color: black;">Atenciosamente,</p>
+                    <p style="color: black;">EinsteinFloripa</p>
+                </body>
+                </html>
+        """
 
-print('ALUNOS NAO ENCONTRADOS', alunos_nao_encontrados)
-print('ALUNOS ENCONTRADOS', alunos_encontrados)
+        send_email(
+                to_email=email,
+                subject='Relatório Simulinho 2024 - EinsteinFloripa',
+                body=html_message,
+                attachment_path=pdf_path
+        )
+
+
+
+        alunos_encontrados += 1
+
+    else:
+        alunos_nao_encontrados += 1
 
