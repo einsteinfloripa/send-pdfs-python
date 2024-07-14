@@ -12,7 +12,7 @@ O projeto foi feito com o objetivo de enviar por e-mail os relatórios em pdf de
 Para instalar as depedencias do projeto, utilize:
 
 ```bash
-# Instlaando dependências
+# Instalando dependências
 pip install -r ./requirements/requirements.txt
 ```
 
